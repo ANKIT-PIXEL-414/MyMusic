@@ -17,13 +17,14 @@ const images = ["img1.jpg", "img2.jpg", "img3.jpg", "img4.jpg", "img5.jpg", "img
 let playlist = [];
 let currentTrackIndex = 0;
 
+// Format time as mm:ss
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
   const s = Math.floor(seconds % 60).toString().padStart(2, '0');
   return `${m}:${s}`;
 }
 
-// Smoothly set a random placeholder image
+// Set a random placeholder with fade effect
 function setRandomPlaceholder() {
   const randomIndex = Math.floor(Math.random() * images.length);
   const selectedImage = images[randomIndex];
@@ -32,10 +33,16 @@ function setRandomPlaceholder() {
   placeholder.style.opacity = 0;
 
   setTimeout(() => {
-    placeholder.style.background = `url("/assets/Images/${selectedImage}") center/cover no-repeat`;
+    placeholder.style.backgroundImage = `url("/assets/Images/${selectedImage}")`;
+    placeholder.style.backgroundPosition = "center";
+    placeholder.style.backgroundSize = "cover";
+    placeholder.style.backgroundRepeat = "no-repeat";
     placeholder.style.opacity = 1;
   }, 250);
 }
+
+// Initial placeholder on page load
+setRandomPlaceholder();
 
 // Play/pause toggle
 playBtn.addEventListener('click', () => {
@@ -64,7 +71,7 @@ addBtn.addEventListener('click', () => {
   fileInput.click();
 });
 
-// Handle multiple file uploads
+// Handle multiple audio file uploads
 fileInput.addEventListener('change', (eve) => {
   const files = Array.from(eve.target.files).filter(file => file.type.startsWith('audio/'));
   if (files.length === 0) return;
