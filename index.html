@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Music Player</title>
+  <link rel="stylesheet" href="style.css" />
+  <!-- Font Awesome CDN for icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+  <h1>Music Player</h1>
+  <div class="main">
+    <div class="placeholder"></div>
+    
+    <div class="seek-bar">
+      <p class="timer">00:00/00:00</p>
+      <input id="seek" type="range" min="0" value="0" max="100">
+    </div>
+    
+    <div class="controls">
+      <button class="btn" id="prev">
+        <i class="fas fa-backward"></i>
+      </button>
+      
+      <button class="btn" id="play-pause">
+        <i class="fas fa-play" id="play-icon"></i>
+        <i class="fas fa-pause" id="pause-icon" style="display:none;"></i>
+      </button>
+      
+      <button class="btn" id="next">
+        <i class="fas fa-forward"></i>
+      </button>
+    </div>
+    <div class="files">
+      <button class="add-btn">Add Music</button>
+      <input style="display: none;" type="file" name="" id="file-input" value="" />
+      <audio autoplay id="player" style="display: none;" src=""></audio>
+      <select class="audio-select" name="" id="">
+        <option value="none">none</option>
+      </select>
+    </div>
+    <p class="file-nm"></p>
+  </div>
+  
+  <script src="main.js"></script>
+</body>
+
+</html>
