@@ -13,19 +13,31 @@ const fileInput = document.getElementById('file-input');
 const audioSelect = document.querySelector('.audio-select');
 const player = document.getElementById('player');
 
+const images = ["img1.jpg", "img2.jpg", "img3.jpg", "img4.jpg", "img5.jpg", "img6.jpg"];
+let playlist = [];
+let currentTrackIndex = 0;
+
 function formatTime(seconds) {
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
   const s = Math.floor(seconds % 60).toString().padStart(2, '0');
   return `${m}:${s}`;
 }
-const images = ["img1.jpg", "img2.jpg", "img3.jpg", "img4.jpg", "img5.jpg", "img6.jpg"];
 
-// Function to pick a random image
+// Smoothly set a random placeholder image
 function setRandomPlaceholder() {
   const randomIndex = Math.floor(Math.random() * images.length);
   const selectedImage = images[randomIndex];
-  placeholder.style.background = `url("/assets/Images/${selectedImage}") center/cover no-repeat`;
+
+  placeholder.style.transition = "opacity 0.5s ease-in-out";
+  placeholder.style.opacity = 0;
+
+  setTimeout(() => {
+    placeholder.style.background = `url("/assets/Images/${selectedImage}") center/cover no-repeat`;
+    placeholder.style.opacity = 1;
+  }, 250);
 }
+
+// Play/pause toggle
 playBtn.addEventListener('click', () => {
   if (playIcon.style.display !== 'none') {
     playIcon.style.display = 'none';
@@ -38,6 +50,7 @@ playBtn.addEventListener('click', () => {
   }
 });
 
+// Seek bar functionality
 seek.style.backgroundSize = `${seek.value}% 100%`;
 seek.addEventListener('input', e => {
   e.target.style.backgroundSize = `${e.target.value}% 100%`;
@@ -46,39 +59,74 @@ seek.addEventListener('input', e => {
   }
 });
 
+// Trigger file input click
 addBtn.addEventListener('click', () => {
   fileInput.click();
 });
 
+// Handle multiple file uploads
 fileInput.addEventListener('change', (eve) => {
+  const files = Array.from(eve.target.files).filter(file => file.type.startsWith('audio/'));
+  if (files.length === 0) return;
+
+  playlist = files.map(file => ({
+    name: file.name,
+    url: URL.createObjectURL(file)
+  }));
+
+  // Set first track
+  currentTrackIndex = 0;
+  player.src = playlist[0].url;
+  fileName.innerText = playlist[0].name;
+
+  // Update dropdown
+  audioSelect.innerHTML = '';
+  playlist.forEach((track, index) => {
+    const opt = document.createElement('option');
+    opt.value = track.url;
+    opt.innerText = track.name;
+    if (index === 0) opt.selected = true;
+    audioSelect.appendChild(opt);
+  });
+
   setRandomPlaceholder();
-  const files = eve.target.files;
-  if (files.length > 0) {
-    const firstFile = files[0];
-    fileName.innerText = firstFile.name;
-    player.src = URL.createObjectURL(firstFile);
-    
-    audioSelect.innerHTML = '';
-    for (let i = 0; i < files.length; i++) {
-      const opt = document.createElement('option');
-      opt.value = URL.createObjectURL(files[i]);
-      opt.innerText = files[i].name;
-      audioSelect.appendChild(opt);
-    }
-  } else {
-    fileName.innerText = "No file selected";
-    audioSelect.innerHTML = '<option value="none">none</option>';
-  }
 });
 
+// Dropdown selection
 audioSelect.addEventListener('change', (e) => {
-  player.src = e.target.value;
+  const selectedIndex = playlist.findIndex(track => track.url === e.target.value);
+  if (selectedIndex !== -1) currentTrackIndex = selectedIndex;
+
+  player.src = playlist[currentTrackIndex].url;
   player.play();
   playIcon.style.display = 'none';
   pauseIcon.style.display = 'inline';
+  fileName.innerText = playlist[currentTrackIndex].name;
+  setRandomPlaceholder();
 });
 
-// Update timer and seek bar as audio plays
+// Next / Previous buttons
+nextBtn.addEventListener('click', () => {
+  if (playlist.length === 0) return;
+  currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+  player.src = playlist[currentTrackIndex].url;
+  player.play();
+  fileName.innerText = playlist[currentTrackIndex].name;
+  audioSelect.value = player.src;
+  setRandomPlaceholder();
+});
+
+prevBtn.addEventListener('click', () => {
+  if (playlist.length === 0) return;
+  currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+  player.src = playlist[currentTrackIndex].url;
+  player.play();
+  fileName.innerText = playlist[currentTrackIndex].name;
+  audioSelect.value = player.src;
+  setRandomPlaceholder();
+});
+
+// Update timer and seek bar
 player.addEventListener('timeupdate', () => {
   const current = player.currentTime;
   const duration = player.duration || 0;
@@ -88,3 +136,13 @@ player.addEventListener('timeupdate', () => {
   seek.style.backgroundSize = `${progress}% 100%`;
 });
 
+// Auto play next track when current ends
+player.addEventListener('ended', () => {
+  if (playlist.length === 0) return;
+  currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+  player.src = playlist[currentTrackIndex].url;
+  player.play();
+  fileName.innerText = playlist[currentTrackIndex].name;
+  audioSelect.value = player.src;
+  setRandomPlaceholder();
+});
