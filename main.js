@@ -24,23 +24,21 @@ function formatTime(seconds) {
   return `${m}:${s}`;
 }
 
-// Set a random placeholder with fade effect
 function setRandomPlaceholder() {
   const randomIndex = Math.floor(Math.random() * images.length);
   const selectedImage = images[randomIndex];
-
+  
   placeholder.style.transition = "opacity 0.5s ease-in-out";
   placeholder.style.opacity = 0;
-
+  
   setTimeout(() => {
-    placeholder.style.backgroundImage = `url("/assets/Images/${selectedImage}")`;
+    placeholder.style.backgroundImage = `url("assets/Images/${selectedImage}")`;
     placeholder.style.backgroundPosition = "center";
     placeholder.style.backgroundSize = "cover";
     placeholder.style.backgroundRepeat = "no-repeat";
     placeholder.style.opacity = 1;
   }, 250);
 }
-
 // Initial placeholder on page load
 setRandomPlaceholder();
 
@@ -153,3 +151,4 @@ player.addEventListener('ended', () => {
   audioSelect.value = player.src;
   setRandomPlaceholder();
 });
+                
