@@ -54,7 +54,11 @@ playBtn.addEventListener('click', () => {
     player.pause();
   }
 });
-
+function check(){
+  if(player.play){
+    console.log("Check 1231")
+  }
+}
 // Seek bar functionality
 seek.style.backgroundSize = `${seek.value}% 100%`;
 seek.addEventListener('input', e => {
