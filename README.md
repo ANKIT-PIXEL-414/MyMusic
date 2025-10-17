@@ -7,7 +7,7 @@ A sleek, modern, and responsive web-based **Music Player** built with HTML, CSS,
 ## 🌟 Features
 
 - **Responsive UI**: Works on both desktop and mobile screens with adaptive layouts.  
-- **Custom Seekbar**: Stylish, animated seekbar showing current progress.  
+- **Custom Seekbar**: Stylish, animated seekbar showing current progress.
 - **Play/Pause/Next/Previous Controls**: Fully functional music control buttons with interactive feedback.  
 - **Random Album Art**: Each session displays a randomly selected placeholder image for a fresh look.  
 - **File Upload**: Add your own audio files and manage a simple playlist.  
@@ -19,7 +19,6 @@ A sleek, modern, and responsive web-based **Music Player** built with HTML, CSS,
 
 ## 🖼 Screenshot
 
-![Music Player Screenshot](./assets/Screenshot.png)  
-*Replace with your own screenshot if available.*
+![Music Player Screenshot](./assets/Screenshot.png) 
 
 ---
