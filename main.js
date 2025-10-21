@@ -1,3 +1,6 @@
+
+// ====== Music Player Script ======
+
 const mainContainer = document.querySelector('.main');
 const placeholder = document.querySelector('.placeholder');
 const timer = document.querySelector('.timer');
@@ -19,18 +22,18 @@ let currentTrackIndex = 0;
 
 // Format time as mm:ss
 function formatTime(seconds) {
+  if (!seconds || isNaN(seconds)) return "00:00";
   const m = Math.floor(seconds / 60).toString().padStart(2, '0');
   const s = Math.floor(seconds % 60).toString().padStart(2, '0');
   return `${m}:${s}`;
 }
 
+// Random placeholder background
 function setRandomPlaceholder() {
   const randomIndex = Math.floor(Math.random() * images.length);
   const selectedImage = images[randomIndex];
-  
   placeholder.style.transition = "opacity 0.5s ease-in-out";
   placeholder.style.opacity = 0;
-  
   setTimeout(() => {
     placeholder.style.backgroundImage = `url("assets/Images/${selectedImage}")`;
     placeholder.style.backgroundPosition = "center";
@@ -39,120 +42,127 @@ function setRandomPlaceholder() {
     placeholder.style.opacity = 1;
   }, 250);
 }
-// Initial placeholder on page load
 setRandomPlaceholder();
 
-// Play/pause toggle
-playBtn.addEventListener('click', () => {
-  if (playIcon.style.display !== 'none') {
-    playIcon.style.display = 'none';
-    pauseIcon.style.display = 'inline';
-    player.play();
+// Update icons (sync with play/pause)
+function updateIcons(isPlaying) {
+  playIcon.style.display = isPlaying ? 'none' : 'inline';
+  pauseIcon.style.display = isPlaying ? 'inline' : 'none';
+}
+
+// Load a track by index
+function loadTrack(index, autoPlay = true) {
+  if (!playlist.length) return;
+  
+  currentTrackIndex = index;
+  const track = playlist[currentTrackIndex];
+  player.src = track.url;
+  fileName.innerText = track.name;
+  audioSelect.value = track.url;
+  timer.innerText = "00:00 / 00:00";
+  setRandomPlaceholder();
+  
+  if (autoPlay) {
+    player.play().catch(() => {});
+    updateIcons(true);
   } else {
-    playIcon.style.display = 'inline';
-    pauseIcon.style.display = 'none';
-    player.pause();
-  }
-});
-function check(){
-  if(player.play){
-    console.log("Check 1231")
+    updateIcons(false);
   }
 }
-// Seek bar functionality
-seek.style.backgroundSize = `${seek.value}% 100%`;
-seek.addEventListener('input', e => {
-  e.target.style.backgroundSize = `${e.target.value}% 100%`;
-  if (player.duration) {
-    player.currentTime = (player.duration * e.target.value) / 100;
+
+// Toggle play/pause
+playBtn.addEventListener('click', () => {
+  if (player.src === "") return;
+  if (player.paused) {
+    player.play().catch(() => {});
+    updateIcons(true);
+  } else {
+    player.pause();
+    updateIcons(false);
   }
 });
 
-// Trigger file input click
-addBtn.addEventListener('click', () => {
-  fileInput.click();
+// Seekbar input control
+seek.addEventListener('input', e => {
+  if (player.duration) {
+    const seekValue = (player.duration * e.target.value) / 100;
+    player.currentTime = seekValue;
+  }
 });
 
-// Handle multiple audio file uploads
-fileInput.addEventListener('change', (eve) => {
-  const files = Array.from(eve.target.files).filter(file => file.type.startsWith('audio/'));
-  if (files.length === 0) return;
+// Seekbar & timer update
+player.addEventListener('timeupdate', () => {
+  const current = player.currentTime;
+  const duration = player.duration || 0;
+  const progress = duration ? (current / duration) * 100 : 0;
+  seek.value = progress;
+  seek.style.backgroundSize = `${progress}% 100%`;
+  timer.innerText = `${formatTime(current)} / ${formatTime(duration)}`;
+});
 
-  playlist = files.map(file => ({
+// Add files button
+addBtn.addEventListener('click', () => fileInput.click());
+
+// Handle file uploads (append, not replace)
+fileInput.addEventListener('change', e => {
+  const files = Array.from(e.target.files).filter(f => f.type.startsWith('audio/'));
+  if (!files.length) return;
+  
+  const newTracks = files.map(file => ({
     name: file.name,
     url: URL.createObjectURL(file)
   }));
-
-  // Set first track
-  currentTrackIndex = 0;
-  player.src = playlist[0].url;
-  fileName.innerText = playlist[0].name;
-
+  
+  const wasEmpty = playlist.length === 0;
+  playlist = [...playlist, ...newTracks];
+  
   // Update dropdown
   audioSelect.innerHTML = '';
   playlist.forEach((track, index) => {
     const opt = document.createElement('option');
     opt.value = track.url;
     opt.innerText = track.name;
-    if (index === 0) opt.selected = true;
+    if (index === currentTrackIndex) opt.selected = true;
     audioSelect.appendChild(opt);
   });
-
-  setRandomPlaceholder();
+  
+  // Load first track if playlist was empty
+  if (wasEmpty) {
+    loadTrack(0, false);
+  }
 });
 
-// Dropdown selection
-audioSelect.addEventListener('change', (e) => {
+// Select from dropdown
+audioSelect.addEventListener('change', e => {
   const selectedIndex = playlist.findIndex(track => track.url === e.target.value);
-  if (selectedIndex !== -1) currentTrackIndex = selectedIndex;
-
-  player.src = playlist[currentTrackIndex].url;
-  player.play();
-  playIcon.style.display = 'none';
-  pauseIcon.style.display = 'inline';
-  fileName.innerText = playlist[currentTrackIndex].name;
-  setRandomPlaceholder();
+  if (selectedIndex !== -1) loadTrack(selectedIndex, true);
 });
 
-// Next / Previous buttons
+// Next/Previous buttons
 nextBtn.addEventListener('click', () => {
-  if (playlist.length === 0) return;
-  currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-  player.src = playlist[currentTrackIndex].url;
-  player.play();
-  fileName.innerText = playlist[currentTrackIndex].name;
-  audioSelect.value = player.src;
-  setRandomPlaceholder();
+  if (!playlist.length) return;
+  const nextIndex = (currentTrackIndex + 1) % playlist.length;
+  loadTrack(nextIndex);
 });
 
 prevBtn.addEventListener('click', () => {
-  if (playlist.length === 0) return;
-  currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
-  player.src = playlist[currentTrackIndex].url;
-  player.play();
-  fileName.innerText = playlist[currentTrackIndex].name;
-  audioSelect.value = player.src;
-  setRandomPlaceholder();
+  if (!playlist.length) return;
+  const prevIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+  loadTrack(prevIndex);
 });
 
-// Update timer and seek bar
-player.addEventListener('timeupdate', () => {
-  const current = player.currentTime;
-  const duration = player.duration || 0;
-  timer.innerText = `${formatTime(current)} / ${formatTime(duration)}`;
-  const progress = duration ? (current / duration) * 100 : 0;
-  seek.value = progress;
-  seek.style.backgroundSize = `${progress}% 100%`;
-});
-
-// Auto play next track when current ends
+// Auto play next track on end
 player.addEventListener('ended', () => {
-  if (playlist.length === 0) return;
-  currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-  player.src = playlist[currentTrackIndex].url;
-  player.play();
-  fileName.innerText = playlist[currentTrackIndex].name;
-  audioSelect.value = player.src;
-  setRandomPlaceholder();
+  if (!playlist.length) return;
+  const nextIndex = (currentTrackIndex + 1) % playlist.length;
+  loadTrack(nextIndex);
 });
-                
+
+// Sync icons with actual play/pause
+player.addEventListener('play', () => updateIcons(true));
+player.addEventListener('pause', () => updateIcons(false));
+
+// Reset when source changes
+player.addEventListener('loadedmetadata', () => {
+  timer.innerText = `00:00 / ${formatTime(player.duration)}`;
+});
